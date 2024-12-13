@@ -1,0 +1,57 @@
+// // SPDX-License-Identifier: MIT
+// pragma solidity ^0.8.17;
+
+pragma solidity ^0.8.0;
+
+
+interface IDetectionBot {
+    function handleTransaction(address user, bytes calldata msgData) external;
+}
+
+interface IForta {
+    function raiseAlert(address user) external;
+}
+
+contract DoubleEntryPointSolution is IDetectionBot {
+    address cryptoVault;
+
+    constructor(address _cryptoVault) {
+        cryptoVault = _cryptoVault;
+    }
+
+    function handleTransaction(address user, bytes calldata msgData) external {
+        // msgData is ABI-encoded data for:
+        // function delegateTransfer(address to, uint256 value, address origSender) returns (bool)
+        (, , address origSender) = abi.decode(
+            msgData[4:],
+            (address, uint256, address)
+        );
+        if (cryptoVault == origSender) {
+            IForta(msg.sender).raiseAlert(user);
+        }
+    }
+}
+
+
+
+
+contract FortaDetectionBot {
+    address private cryptoVault;
+
+    constructor(address _cryptoVault) {
+        cryptoVault = _cryptoVault;
+    }
+
+    function handleTransaction(address user, bytes calldata msgData) external {
+        // Extract the address of original message sender
+        // which should start at offset 168 (0xa8) of calldata
+        address origSender;
+        assembly {
+            origSender := calldataload(0xa8)
+        }
+
+        if (origSender == cryptoVault) {
+            IForta(msg.sender).raiseAlert(user);
+        }
+    }
+}
